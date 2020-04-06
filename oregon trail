@@ -1,0 +1,178 @@
+
+"""
+Read the map file, return the map data in some form to the rest of your program.
+Read the event file, return the event data.
+Build a character.
+Play the game.  The game will always start at "The Dorms" and end at "ITE"
+If you make it to ITE before time expires, then you win.  If your time remaining is zero and you are at ITE, then you win.  However, if your time is -1, then you lose, even if you have reached ITE.
+If time runs out, and you're not at ITE, you lose.
+"""
+
+
+SKILL_POINTS = 10
+
+
+def load_map(map_file_name):
+    # asks for the file of the map
+    #map_file = input("Enter the file you want to read:")
+    with open(map_file_name, 'r') as f:
+        game_map = f.readlines()
+    # print(game_map)
+    # print(range(len(game_map)))
+
+    # PART 1: goes through each line of the map file
+    # organizes each group of one starting place and the following destination into a list
+    # adds that list into another list (matrix :D)
+    starting_place = [] #mat
+    count = 0
+    destination_current = []
+    destination_time = []
+    for i in range(len(game_map)):
+        if count < len(game_map):
+            if count == 0:
+                destination = []
+                destination.append(game_map[count].strip())
+            elif "," not in game_map[count]:
+                starting_place.append(destination)
+                destination = []
+                destination.append(game_map[count].strip())
+
+            # separates the destination names from destination times
+            # magic: now the comma has disappeared!
+            elif "," in game_map[count]:
+                game_map[count] = game_map[count][1:].strip()
+                game_map[count] = game_map[count].split(",")
+                destination_current.append(game_map[count][0])
+                destination_time.append(int(game_map[count][1]))
+                destination.append(game_map[count])
+                #print(destination_time)
+                #print(destination_current)
+            count += 1
+            i = count
+    #print(starting_place)
+
+    # PART 2: separates the starting place from destinations
+    #for j in range(len(starting_place)):
+    #    starting_place_current = starting_place[j][0]
+    #    for k in range(len(starting_place[j])):
+    #        if len(starting_place_current) > 1:
+    #            destination_current = starting_place[j][1:]
+
+
+    #places = {starting_place[j]:ending_place}
+    return starting_place, destination_current, destination_time
+# This function must take a string which is the file name,
+# and return the "map" or some representation of it for the rest of the game to use.
+# You can add arguments to the function, but you must pass the file name.
+# This function must not set any global variables.
+
+
+def load_events(event_file_name):
+    # asks for the file of the events
+    #event_file = input("Enter the file you want to read:")
+    with open(event_file_name, 'r') as f:
+        game_events = f.readlines()
+        #game_events = game_events.split()
+        #game_events = game_events.strip()
+        #game_events = "".join(game_events)
+
+    # separates each event and defines them as a variable
+    for i in range(len(game_events)):
+        game_events[i] = game_events[i].split(",")
+        place_name = game_events[i][0]
+        event_text = game_events[i][1]
+        event_win = game_events[i][0]
+        event_lose = game_events[i][1]
+        charisma_bypass = game_events[i][1]
+        stealth_bypass = game_events[i][0]
+        time_lost = game_events[i][1]
+    return game_events, place_name, event_text, event_win, event_lose,charisma_bypass, stealth_bypass, time_lost
+
+# This function must take a string which is the file name,
+# and return the events for the rest of the game to use.
+# You can add arguments to the function, but you must pass the file name.
+# This function must not set any global variables.
+
+
+def play_game(start_time, game_map, events):
+
+    end_goal = False
+    current_building = starting_place[0][0]
+    next_buildings = str(starting_place[0][1:])
+    while not end_goal:
+        for j in range(len(next_buildings)):
+            current_building = starting_place[j][0]
+            next_buildings = str(starting_place[j][1:])
+            print("You are currently in", current_building, "and have", start_time, "seconds left to get to ITE.")
+            print(next_buildings)
+            print(destination_current)
+            move = False
+            choice = input("Where do you want to go?")
+            while not move:
+            # goal: match where the place the player wants to go with the next starting place
+            # needs to check if the choice is a viable option
+                if choice in next_buildings and choice in destination_current:
+                    current_building = choice
+                    for i in range(len(next_buildings)):
+                        if choice in next_buildings[i][1:]:
+                            print(i)
+                            start_time = start_time - destination_time[i]
+                    print(start_time)
+                    move = True
+                else:
+                    print(choice, "is not a valid location.")
+                    choice = input("Where do you want to go?")
+
+
+
+
+    return choice
+
+# This function should handle most of the game functionality.
+# Whatever is returned to you in load_map and load_events should go into this function,
+# as well as the amount of time you have to play.
+# You are allowed to change the arguments if you need more.
+# However, you need to at least take in the data contained.
+# This function must not set any global variables.
+
+# DICTIONARY WITHIN DICTIONARY!!!!
+
+
+
+
+def create_character():
+    time = int(input("How much time do you want to start with?"))
+    name = input("What is your name? Enter a first and last name separated by spaces, middle is optional.")
+    while " " not in name:
+        name = input("What is your name? Enter a first and last name separated by spaces, middle is optional.")
+    print("You have exactly 10 skill points to distribute.")
+    charisma_points = int(input("How charismatic are you, you have " + str(SKILL_POINTS) + " skill points?"))
+    sneak_points = int(input("How sneaky are you, you have " + str(SKILL_POINTS - charisma_points) + " skill points left?"))
+
+    # makes sure skill points equal 10 and are positive
+    while charisma_points < 0 or sneak_points < 0 or (charisma_points + sneak_points) != SKILL_POINTS:
+        print("You need to distribute all skill points, they must all be positive.")
+        charisma_points = int(input("How charismatic are you, you have " + str(SKILL_POINTS) + " skill points?"))
+        sneak_points = int(input("How sneaky are you, you have " + str(SKILL_POINTS - charisma_points) + " skill points left?"))
+
+    return time, charisma_points, sneak_points
+# This function should create your character by getting the name,
+# charisma and stealthiness.  This function should take no arguments.
+# This function must not set any global variables.
+
+
+if __name__ == "__main__":
+    # testing parameters
+    time = 5000
+    sneak = 5
+    charisma = 5
+
+    map_file = "map.txt"
+    map_events = "events.txt"
+    starting_place, destination_current, destination_time = load_map(map_file)
+    game_events = load_events(map_events)
+
+    #time, charisma, sneak = create_character()
+    #play_game(time, starting_place, game_events)
+
+
